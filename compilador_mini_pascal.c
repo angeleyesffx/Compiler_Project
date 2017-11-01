@@ -1221,116 +1221,117 @@ int leitor(char str[],int *p) {
 /*Buffer que irá armazenar os tokens lidos pelo analizador léxico*/
 struct Node{
  int num;
+ char palavra;
  struct Node *prox;
 };
 typedef struct Node node;
 
 int tam;
 
-void inicia(node *PILHA);
-void exibe(node *PILHA);
-void libera(node *PILHA);
-node *pop(node *PILHA);
+void inicia(node *FILA);
+int vazia(node *FILA);
+node *aloca(int elem);
+void enqueue(node *FILA, int elem);
+node *dequeue(node *FILA);
+void exibe(node *FILA);
+void libera(node *FILA);
+
 //inicia o buffer
-void inicia(node *PILHA)
-{
- PILHA->prox = NULL;
- tam=0;
+void inicia(node *FILA){
+	FILA->prox = NULL;
+	tam=0;
 }
 //verifica se o buffer está vazio
-int vazia(node *PILHA){
-    if(PILHA->prox == NULL)
-       return 1;
-    else
-       return 0;
+int vazia(node *FILA){
+	if(FILA->prox == NULL)
+		return 1;
+	else
+		return 0;
 }
 //aloca o token lido no analisador léxico
-node *aloca(int elem){
-    node *novo=(node *) malloc(sizeof(node));
+node *aloca(int elem){ 
+	node *novo=(node *) malloc(sizeof(node));
 	if(!novo){
-       printf("Sem memoria disponivel!\n");
-  	   exit(1);
+		printf("Sem memoria disponivel!\n");
+		exit(1);
 	}else{
-	   novo->num = elem;
+       novo->num = elem;
+	   
 	   return novo;
 	}
 }
+
 //exibe os elementos dentro do buffer
-void exibe(node *PILHA){
+void exibe(node *FILA){
     int count=0;
-	if(vazia(PILHA)){
+	if(vazia(FILA)){
 	   printf("PILHA vazia!\n\n");
     }
 	node *tmp;
-	tmp = PILHA->prox;
+	tmp = FILA->prox;
 	printf("TOKENS NO BUFFER:\n");
-	while( tmp != NULL){
-	  printf("<%d,%d>\n", tmp->num,count);
+	while( tmp != NULL){ 
+	printf("%d\n", tmp->num);
+	 // printf("<%d,%s>\n", tmp->num,tmp->palavra);
 	  tmp = tmp->prox;
 	  count++;
     }
-
 }
+
 //libera o buffer 
-void libera(node *PILHA){
-    if(!vazia(PILHA)){
-       node *proxNode,
-       *atual;
-        atual = PILHA->prox;
-        while(atual != NULL){
-            proxNode = atual->prox;
-            free(atual);
-            atual = proxNode;
-        }
-    }
-}
-//escreve o elemento lido dentro do buffer
-void push(node *PILHA, int elem){
-    node *novo=aloca(elem);
-    novo->prox = NULL;
-    if(vazia(PILHA))
-      PILHA->prox=novo;
-    else{
-      node *tmp = PILHA->prox;
-      while(tmp->prox != NULL)
-        tmp = tmp->prox;
-    tmp->prox = novo; 
+void libera(node *FILA){
+	if(!vazia(FILA)){
+		node *proxNode,
+		*atual;
+		atual = FILA->prox;
+		while(atual != NULL){
+			proxNode = atual->prox;
+			free(atual);
+			atual = proxNode;
+		}
 	}
-    tam++;
 }
+
+//escreve o elemento lido dentro do buffer
+void enqueue(node *FILA, int elem){
+    node *novo=aloca(elem);
+   	novo->prox = NULL;
+	if(vazia(FILA))
+		FILA->prox=novo;
+	else{
+		node *tmp = FILA->prox;
+		while(tmp->prox != NULL)
+			tmp = tmp->prox;
+		tmp->prox = novo;
+	}
+	tam++;
+}
+
 //retira o elemento a partir do topo do buffer
-node *pop(node *PILHA){
-    if(PILHA->prox == NULL){
-       exit(0);
-    }else{
-        node *ultimo = PILHA->prox,
-        *penultimo = PILHA;
-        while(ultimo->prox != NULL){
-            penultimo = ultimo;
-            ultimo = ultimo->prox;
-       }
-    penultimo->prox = NULL;
-    tam--;
-    return ultimo;
-    }
+node *dequeue(node *FILA){ 
+	if(FILA->prox == NULL){
+		printf("Fila ja esta vazia\n");
+		return NULL;
+	}else{
+		node *tmp = FILA->prox;
+		FILA->prox = tmp->prox;
+		tam--;
+		return tmp;
+	}
 }
-int lookahead(node *PILHA){
-    if(PILHA->prox == NULL){
+
+int lookahead(node *FILA){
+    if(FILA->prox == NULL){
        exit(0);
     }else{
-        node *ultimo = PILHA->prox,
-        *penultimo = PILHA;
-        while(ultimo->prox != NULL){
-            penultimo = ultimo;
-            ultimo = ultimo->prox;
-        }
-        return ultimo ->num;
+        node *tmp = FILA->prox;
+		return tmp->num;
     }
 }
 
-void match(node *PILHA, int token){
-	if(lookahead(PILHA) == token){	
-		pop(PILHA);
+void match(node *FILA, int token){
+	if(lookahead(FILA) == token){	
+		dequeue(FILA);
 		}else{
 			printf("ERRO SINTATICO\n");
 			exit(1);
@@ -1968,23 +1969,9 @@ void PROGRAM(node *BUFFER){
 }
 
 
-void analisador_sintatico(node *PILHA, int stop){
-    node *token; 
-	int lex;
+void analisador_sintatico(node *FILA, int stop){
 	node *BUFFER=(node *)malloc(sizeof(node));
-	//criando o buffer do codigo lido
-	if(!BUFFER){
-	  printf("Sem memoria disponivel!\n");
-	  exit(1);
-	 }else{
-	    inicia(BUFFER);
-	//invertendo a pilha para usar o buffer		 
-	while(stop != 0){
-		token = pop(PILHA);
-	    lex = token->num;
-		push(BUFFER,token->num);  
-		stop--;
-    }exibe(BUFFER);
+	BUFFER = FILA;
 	while(stop != -1){
 		switch(lookahead(BUFFER)){
 			case _PROGRAM:
@@ -2003,20 +1990,20 @@ void analisador_sintatico(node *PILHA, int stop){
 				break;	
 		}
 	}
-	printf("Analise sintatica finalizada.\n");
-    } 
+	printf("Analise sintatica finalizada.\n"); 
 }
+
 int main(){
 	char str[9999], linha[9999], final[9999] = "", url[]="", ch;
 	int i = -1, r=1, tamanho = 0, count=0, quantidade = 0;
 	FILE *arq;
 	FILE *saida;
-	node *PILHA=(node *)malloc(sizeof(node));
-	if(!PILHA){
+	node *FILA=(node *)malloc(sizeof(node));
+	if(!FILA){
 	  printf("Sem memoria disponivel!\n");
 	  exit(1);
 	 }else{
-	 inicia(PILHA);
+	 inicia(FILA);
 	//Definindo o arquivo a ser compilado como program.txt	
 	arq = fopen("program.txt", "r");
 	//Arquivo de saida.txt exibe a lista de tokens lidos pelo automato do método leitor
@@ -2040,9 +2027,9 @@ int main(){
 			    	strcat(final, &ch);
 			    	r = leitor(final, &i);
 			    	if((r!=1)&&(r!=-1)){
-			    	    push(PILHA,r);
+			    	    enqueue(FILA,r);
 				    	if (r!=0){
-				    		fprintf(saida, "<%d,%d>\n", r, quantidade);
+				    		fprintf(saida, "<%d,%s>\n", r, final);
 				    	    quantidade++;
 				    	}else{
 				    		if(r==0){
@@ -2062,12 +2049,12 @@ int main(){
 			    count++; 	
 			    }
 		   }  
-	//	exibe(PILHA);    
+		exibe(FILA);    
 		fclose(saida);
 		fclose(arq);
-		analisador_sintatico(PILHA, quantidade);
+		analisador_sintatico(FILA, quantidade);
 		}
-	free(PILHA);
+	libera(FILA);
     return 0;
     }
 }
