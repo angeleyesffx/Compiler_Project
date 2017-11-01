@@ -1221,7 +1221,7 @@ int leitor(char str[],int *p) {
 /*Buffer que irá armazenar os tokens lidos pelo analizador léxico*/
 struct Node{
  int num;
- char palavra;
+ char palavra[100];
  struct Node *prox;
 };
 typedef struct Node node;
@@ -1230,8 +1230,8 @@ int tam;
 
 void inicia(node *FILA);
 int vazia(node *FILA);
-node *aloca(int elem);
-void enqueue(node *FILA, int elem);
+node *aloca(int elem,char* s);
+void enqueue(node *FILA, int elem,char* s);
 node *dequeue(node *FILA);
 void exibe(node *FILA);
 void libera(node *FILA);
@@ -1249,14 +1249,14 @@ int vazia(node *FILA){
 		return 0;
 }
 //aloca o token lido no analisador léxico
-node *aloca(int elem){ 
+node *aloca(int elem,char* s){ 
 	node *novo=(node *) malloc(sizeof(node));
 	if(!novo){
 		printf("Sem memoria disponivel!\n");
 		exit(1);
 	}else{
        novo->num = elem;
-	   
+	   strcpy (novo->palavra, s);
 	   return novo;
 	}
 }
@@ -1265,14 +1265,13 @@ node *aloca(int elem){
 void exibe(node *FILA){
     int count=0;
 	if(vazia(FILA)){
-	   printf("PILHA vazia!\n\n");
+	   printf("FILA vazia!\n\n");
     }
 	node *tmp;
 	tmp = FILA->prox;
 	printf("TOKENS NO BUFFER:\n");
-	while( tmp != NULL){ 
-	printf("%d\n", tmp->num);
-	 // printf("<%d,%s>\n", tmp->num,tmp->palavra);
+	while( tmp != NULL){
+      printf("<%d,%s>\n", tmp->num,tmp->palavra);
 	  tmp = tmp->prox;
 	  count++;
     }
@@ -1293,8 +1292,8 @@ void libera(node *FILA){
 }
 
 //escreve o elemento lido dentro do buffer
-void enqueue(node *FILA, int elem){
-    node *novo=aloca(elem);
+void enqueue(node *FILA, int elem,char* s){
+    node *novo=aloca(elem,s);
    	novo->prox = NULL;
 	if(vazia(FILA))
 		FILA->prox=novo;
@@ -1948,7 +1947,6 @@ void CMDREP1(node *BUFFER){
 	}	
 }
 
-
 //PROGRAM  -> ID ; BLOCO .
 void PROGRAM(node *BUFFER){	
 	ID(BUFFER);	
@@ -1968,11 +1966,8 @@ void PROGRAM(node *BUFFER){
 	}
 }
 
-
-void analisador_sintatico(node *FILA, int stop){
-	node *BUFFER=(node *)malloc(sizeof(node));
-	BUFFER = FILA;
-	while(stop != -1){
+void analisador_sintatico(node *BUFFER, int stop){
+		while(stop != -1){
 		switch(lookahead(BUFFER)){
 			case _PROGRAM:
 				printf("Lexema: <program>\n");
@@ -1998,12 +1993,12 @@ int main(){
 	int i = -1, r=1, tamanho = 0, count=0, quantidade = 0;
 	FILE *arq;
 	FILE *saida;
-	node *FILA=(node *)malloc(sizeof(node));
-	if(!FILA){
+	node *BUFFER=(node *)malloc(sizeof(node));
+	if(!BUFFER){
 	  printf("Sem memoria disponivel!\n");
 	  exit(1);
 	 }else{
-	 inicia(FILA);
+	 inicia(BUFFER);
 	//Definindo o arquivo a ser compilado como program.txt	
 	arq = fopen("program.txt", "r");
 	//Arquivo de saida.txt exibe a lista de tokens lidos pelo automato do método leitor
@@ -2027,7 +2022,7 @@ int main(){
 			    	strcat(final, &ch);
 			    	r = leitor(final, &i);
 			    	if((r!=1)&&(r!=-1)){
-			    	    enqueue(FILA,r);
+			    	    enqueue(BUFFER,r,final);
 				    	if (r!=0){
 				    		fprintf(saida, "<%d,%s>\n", r, final);
 				    	    quantidade++;
@@ -2049,12 +2044,12 @@ int main(){
 			    count++; 	
 			    }
 		   }  
-		exibe(FILA);    
+		exibe(BUFFER);    
 		fclose(saida);
 		fclose(arq);
-		analisador_sintatico(FILA, quantidade);
+		analisador_sintatico(BUFFER, quantidade);
 		}
-	libera(FILA);
+	libera(BUFFER);
     return 0;
     }
 }
