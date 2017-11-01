@@ -1399,8 +1399,7 @@ void LPARAM(node * BUFFER);
 void PROGRAM(node *BUFFER);
 
 //TIPO -> integer | boolean
-void TIPO(node *BUFFER){
-	node *token; 
+void TIPO(node *BUFFER){ 
 	switch(lookahead(BUFFER)){
 		case _INTEGER: 
 	    	match(BUFFER, _INTEGER);
@@ -1418,7 +1417,6 @@ void TIPO(node *BUFFER){
 
 //ID -> LETRA {LETRA | DIGITO} 
 void ID(node *BUFFER){
-	node *token; 
 	switch(lookahead(BUFFER)){
 		case _LETTER: 
 			match(BUFFER, _LETTER);
@@ -1430,8 +1428,7 @@ void ID(node *BUFFER){
 }
 
 //NUMERO -> DIGITO {DIGITO} 
-void NUMERO(node *BUFFER){
-	node *token; 
+void NUMERO(node *BUFFER){ 
 	switch(lookahead(BUFFER)){
 		case _NUMBER: 
 		    match(BUFFER, _NUMBER);
@@ -1445,7 +1442,6 @@ void NUMERO(node *BUFFER){
 
 //BOOL -> true | false
 void BOOL(node *BUFFER){
-	node *token; 
 	switch(lookahead(BUFFER)){
 		case _TRUE: 
 		    match(BUFFER, _TRUE);
@@ -1502,7 +1498,6 @@ void FATOR(node *BUFFER){
 
 //TERMO -> FATOR {(* | div) FATOR} 
 void TERMO(node *BUFFER){
-	node *token; 
 	while((lookahead(BUFFER)==_FALSE)||(lookahead(BUFFER)==_TRUE)||(lookahead(BUFFER) == _LETTER)||(lookahead(BUFFER) == _NUMBER)||(lookahead(BUFFER) == _OPMULT)||(lookahead(BUFFER) == _DIV)){
 		switch(lookahead(BUFFER)){
 			case _OPMULT: 
@@ -1535,7 +1530,6 @@ void TERMO(node *BUFFER){
 }
 //ExprSimples -> [+ | -] TERMO {(+ | -) TERMO} 
 void ExprSimples(node *BUFFER){
-	node *token; 
 	while((lookahead(BUFFER)==_FALSE)||(lookahead(BUFFER)==_TRUE)||(lookahead(BUFFER) == _LETTER)||(lookahead(BUFFER) == _NUMBER)||(lookahead(BUFFER) == _OPADI)||(lookahead(BUFFER) == _OPSUB)){
 		switch(lookahead(BUFFER)){
 			case _OPADI: 
@@ -1569,10 +1563,31 @@ void ExprSimples(node *BUFFER){
 
 //RELACAO -> = | <>| <| <= | >= | >
 void RELACAO(node *BUFFER){
-	node *token; 
-	if((lookahead(BUFFER) == _IGUAL)||(lookahead(BUFFER) == _MAIOR)||(lookahead(BUFFER) == _MENOR)||(lookahead(BUFFER) == _MAIORIGUAL)||(lookahead(BUFFER) == _ATRIBUICAO)||(lookahead(BUFFER) == _DIFERENTE)){
-	printf("Lexema: relop\n");	
-	pop(BUFFER);
+	switch(lookahead(BUFFER)){
+	case _IGUAL:
+		match(BUFFER, _IGUAL);
+		printf("Lexema: =\n");	
+    	break;
+	case _MAIOR: 
+	    match(BUFFER, _MAIOR);
+	    printf("Lexema: >\n");	
+    	break;
+	case _MENOR:
+		match(BUFFER, _MENOR);
+		printf("Lexema: <\n");	
+    	break;
+	case _MAIORIGUAL:
+		match(BUFFER, _MAIORIGUAL);
+		printf("Lexema: >=\n");	
+    	break;
+	case _ATRIBUICAO:
+		match(BUFFER, _ATRIBUICAO);
+		printf("Lexema: :=\n");	
+    	break;
+	case _DIFERENTE:
+    	match(BUFFER, _DIFERENTE);
+	    printf("Lexema: <>\n");	
+    	break;
 	} 	
 }
 
@@ -1588,26 +1603,24 @@ void Expr(node *BUFFER){
 //ListaID -> ID {, ID} 
 void ListaID(node *BUFFER){
 	ID(BUFFER);	
-	node *token; 
     if (lookahead(BUFFER) == _VRGL) {
     	while(lookahead(BUFFER) == _VRGL) {
+    		match(BUFFER, _VRGL);
 			printf("Lexema: ,\n");
-			pop(BUFFER);
 			ID(BUFFER);
 		}
     }
 }
 //SecParamForm -> [var] ListaID : TIPO
 void SecParamForm(node *BUFFER){
-    node *token; 
 	switch(lookahead(BUFFER)){
 		case _VAR:
+			match(BUFFER, _VAR);
 			printf("Lexema: var\n"); 
-			pop(BUFFER);
 			ListaID(BUFFER);
 	        if(lookahead(BUFFER) == _DSPNT){
+	        	match(BUFFER, _DSPNT);
 				printf("Lexema: :\n");
-				pop(BUFFER);
 				TIPO(BUFFER);		
 	       	}else{ 
 			    printf("ERRO SINTATICO, esperava :\n");
@@ -1622,11 +1635,10 @@ void SecParamForm(node *BUFFER){
 
 //DeclVar -> ListaID : TIPO
 void DeclVar(node *BUFFER){
-	node *token; 
 	ListaID(BUFFER); 
 	if(lookahead(BUFFER) == _DSPNT){
+	     	match(BUFFER, _DSPNT);
 			printf("Lexema: :\n");
-			pop(BUFFER);
 			TIPO(BUFFER);		
 	}else{ 
 		    printf("ERRO SINTATICO, esperava :\n");
@@ -1636,15 +1648,14 @@ void DeclVar(node *BUFFER){
 
 //PartDeclVar -> var DeclVar {; DeclVar} ; 
 void PartDeclVar(node *BUFFER){
-	node *token; 
 	if(lookahead(BUFFER) == _VAR){
 		while(lookahead(BUFFER) == _VAR){
-			pop(BUFFER);
+			match(BUFFER, _VAR);
 			printf("Lexema: var\n");
 			DeclVar(BUFFER);
 			if(lookahead(BUFFER) == _PNTVRGL){
+				match(BUFFER, _PNTVRGL);
 				printf("Lexema: ;\n");
-				pop(BUFFER);	
 		    }else{ 
 			    printf("ERRO SINTATICO, esperava ;\n");
 				exit(1);	
@@ -1655,32 +1666,31 @@ void PartDeclVar(node *BUFFER){
 
 //PartDeclSubRotina -> {DeclProcedure;}
 void PartDeclSubRotina(node *BUFFER){
-	node *token;
 	if(lookahead(BUFFER) == _PROCEDURE){
 		DeclProcedure(BUFFER);
 		if(lookahead(BUFFER) ==_PNTVRGL){
+			match(BUFFER, _PNTVRGL);
 			printf("Lexema: ;\n");
 	    }
     }	
 }
 
 //CmdComposto -> begin CMD {; CMD} end
-void CmdComposto(node *BUFFER){
-	node *token;	
+void CmdComposto(node *BUFFER){	
 	if (lookahead(BUFFER) == _BEGIN) {
+		match(BUFFER, _BEGIN);
 		printf("Lexema: begin\n");
-		pop(BUFFER);
 		CMD(BUFFER);    
 		while((lookahead(BUFFER) == _WRITE)||(lookahead(BUFFER) == _LETTER)||(lookahead(BUFFER) == _BEGIN)||(lookahead(BUFFER) == _IF)||(lookahead(BUFFER) == _IF)||(lookahead(BUFFER) == _PNTVRGL)){
 			  if(lookahead(BUFFER) == _PNTVRGL){
+			  	match(BUFFER, _PNTVRGL);
 			    printf("Lexema: ;\n");
-			    pop(BUFFER);
 		        }
 				CMD(BUFFER);
 	    }
         if (lookahead(BUFFER) == _END) {
+             match(BUFFER, _END);
 		     printf("Lexema: end\n");
-		     pop(BUFFER);
 	    }
 	} else {
 		printf("ERRO SINTATICO, esperava BEGIN\n");
@@ -1701,20 +1711,19 @@ void BLOCO(node *BUFFER){
 
 //ParamForm -> ( SPARAMFORM {; SPARAMFORM })
 void ParamForm(node *BUFFER){
-	node *token; 
 	switch(lookahead(BUFFER)){
 		case _ABREP: 
+	    	match(BUFFER, _ABREP);
 			printf("Lexema: (\n");
-			pop(BUFFER);
 			SecParamForm(BUFFER);
 			while(lookahead(BUFFER) == _PNTVRGL){
+				match(BUFFER, _PNTVRGL);
 				printf("Lexema: ;\n");
-			    pop(BUFFER);
 				SecParamForm(BUFFER);
 			}
 			if(lookahead(BUFFER) == _FECHAP){
+			   match(BUFFER, _FECHAP);
 		       printf("Lexema: )\n");
-		       pop(BUFFER);
 	     	} else {
 	     		printf("ERRO SINTATICO, esperava )\n");
 	     		exit(1);
@@ -1729,23 +1738,22 @@ void ParamForm(node *BUFFER){
 
 //DeclProcedure -> procedure ID [PARAMFORM] ; BLOCO ;
 void DeclProcedure(node *BUFFER){
-	node *token; 
 	switch(lookahead(BUFFER)){
 		case _PROCEDURE: 
-		    pop(BUFFER);
+		    match(BUFFER, _PROCEDURE);
 			printf("Lexema: <procedure>\n");
 			ID(BUFFER);
 			while(lookahead(BUFFER) == _ABREP){
 			   ParamForm(BUFFER);
 	     	}
 			if(lookahead(BUFFER) == _PNTVRGL){
-				printf("Lexema: ;\n");
-				pop(BUFFER);	
+				match(BUFFER, _PNTVRGL);
+				printf("Lexema: ;\n");	
 		    }
 			BLOCO(BUFFER);
 			if(lookahead(BUFFER) == _PNTVRGL){
+				match(BUFFER, _PNTVRGL);
 				printf("Lexema: ;\n");
-				pop(BUFFER);
 		    }else{ 
 			    printf("ERRO SINTATICO, esperava ;\n");
 				exit(1);	
@@ -1762,18 +1770,18 @@ void CMD(node *BUFFER){
 	node *token; int lex;
 	switch(lookahead(BUFFER)){
 		case _WRITE:
+			match(BUFFER, _WRITE);
 			printf("Lexema: write\n");
-			pop(BUFFER);
         	if(lookahead(BUFFER) == _ABREP){
+        		match(BUFFER, _ABREP);
 				printf("Lexema: (\n");
-				pop(BUFFER);
 				ID(BUFFER);
 			}else{
 				printf("ERRO SINTATICO, esperava (\n");
 				exit(1);
 			}
         	if(lookahead(BUFFER) == _FECHAP){
-        		pop(BUFFER);
+        		match(BUFFER, _FECHAP);
 				printf("Lexema: )\n");
 			}else{
 				printf("ERRO SINTATICO, esperava )\n");
@@ -1782,7 +1790,6 @@ void CMD(node *BUFFER){
 		    break;	
 		case _LETTER:
 			if(lookahead(BUFFER) == _ABREP){
-				printf("Lexema: (\n");
 				CPROC(BUFFER);
 			}else{
 				ATRIB(BUFFER);
@@ -1802,15 +1809,14 @@ void CMD(node *BUFFER){
 
 //ATRIB -> VARIAVEL := EXPR 
 void ATRIB(node *BUFFER){
-	node *token;
 	VARIAVEL(BUFFER);
 	if(lookahead(BUFFER) == _ATRIBUICAO){
+		match(BUFFER, _ATRIBUICAO);
 		printf("Lexema: :=\n");
-		pop(BUFFER);
 		Expr(BUFFER);
 		if(lookahead(BUFFER) == _PNTVRGL){
-				printf("Lexema: ;\n");
-				pop(BUFFER);	
+			match(BUFFER, _PNTVRGL);
+			printf("Lexema: ;\n");	
 		}
 	}else{
 		printf("ERRO SINTATICO, esperava :=\n");
@@ -1820,15 +1826,14 @@ void ATRIB(node *BUFFER){
 
 //CPROC -> ID [( LPARAM )]
 void CPROC(node *BUFFER){
-	node *token;
 	ID(BUFFER);
     while(lookahead(BUFFER) == _ABREP){
+    	match(BUFFER, _ABREP);
 		printf("Lexema: (\n");
-		pop(BUFFER);
 	    LPARAM(BUFFER);
 		if(lookahead(BUFFER) == _FECHAP){
+			match(BUFFER, _FECHAP);
 			printf("Lexema: )\n");
-			pop(BUFFER);
 		}else{
 			printf("ERRO SINTATICO, esperava )\n");
 			exit(1);
@@ -1837,12 +1842,10 @@ void CPROC(node *BUFFER){
 }
 //LPARAM -> [( ID | NUMERO | BOOL ) {, ( ID | NUMERO | BOOL )}]
 void LPARAM(node * BUFFER) {
-    node * token;
     do{
-	    pop(BUFFER);
 	    if(lookahead(BUFFER) == _ABREP) {
+	    	match(BUFFER, _ABREP);
 	        printf("Lexema: (\n");
-	        pop(BUFFER);
 	        switch(lookahead(BUFFER)){
 			      case _LETTER:
 			        ID(BUFFER);
@@ -1861,8 +1864,8 @@ void LPARAM(node * BUFFER) {
 			        break;
 	        }
 		    if(lookahead(BUFFER) == _FECHAP){
+		       match(BUFFER, _FECHAP);
 		       printf("Lexema: )\n");
-		       pop(BUFFER);
 		    }else{
 			    printf("ERRO SINTATICO, esperava )\n");
 			    exit(1);
@@ -1873,25 +1876,24 @@ void LPARAM(node * BUFFER) {
 
 //COMDCOND1 -> if ( Expr ) then CMD {COMDCOND2}
 void COMDCOND1(node *BUFFER){
-	node *token;
 	if(lookahead(BUFFER) == _IF){
+		match(BUFFER, _IF);
 		printf("Lexema: if\n");
-		pop(BUFFER);
 		if(lookahead(BUFFER) == _ABREP){
+			match(BUFFER, _ABREP);
 	    	printf("Lexema: (\n");
-	    	pop(BUFFER);
 		    Expr(BUFFER);   
 		    if(lookahead(BUFFER) == _FECHAP){
+		    	match(BUFFER, _FECHAP);
 		    	printf("Lexema: )\n");
-		    	pop(BUFFER);
 		    }else{
 		    	printf("ERRO SINTATICO, esperava esperava ) \n");
 			    exit(1);
         	}
 	    }
 		if(lookahead(BUFFER) == _THEN){
+			match(BUFFER, _THEN);
 	    	printf("Lexema: then\n");
-	    	pop(BUFFER);
 		    CMD(BUFFER);
 	    }else{
 		    printf("ERRO SINTATICO, esperava esperava then \n");
@@ -1908,34 +1910,32 @@ void COMDCOND1(node *BUFFER){
 
 //COMDCOND2 -> else CMD ----->>>> correção da gramatica
 void COMDCOND2(node *BUFFER){
-	node *token;
 	if(lookahead(BUFFER) == _ELSE){
+		match(BUFFER, _ELSE);
 		printf("Lexema: else\n");
-		pop(BUFFER);
 		CMD(BUFFER);
 	}	
 }
 //CMDREP1 -> while ( EXPR ) do CMD
 void CMDREP1(node *BUFFER){
-	node *token;
 	if(lookahead(BUFFER) == _WHILE){
+		match(BUFFER, _WHILE);
 		printf("Lexema: while\n");
-		pop(BUFFER);
 		if(lookahead(BUFFER) == _ABREP){
+			match(BUFFER, _ABREP);
 	    	printf("Lexema: (\n");
-	    	pop(BUFFER);
 		    Expr(BUFFER);   
 		    if(lookahead(BUFFER) == _FECHAP){
+		    	match(BUFFER, _FECHAP);
 		    	printf("Lexema: )\n");
-		    	pop(BUFFER);
 		    }else{
 		    	printf("ERRO SINTATICO, esperava esperava ) \n");
 			    exit(1);
         	}
 	    }
 		if(lookahead(BUFFER) == _DO){
+			match(BUFFER, _DO);
 	    	printf("Lexema: do\n");
-	    	pop(BUFFER);
 		    CMD(BUFFER);
 	    }else{
 		    printf("ERRO SINTATICO, esperava esperava do \n");
@@ -1950,17 +1950,15 @@ void CMDREP1(node *BUFFER){
 
 //PROGRAM  -> ID ; BLOCO .
 void PROGRAM(node *BUFFER){	
-	node *token; 
-	pop(BUFFER);
 	ID(BUFFER);	
 	switch(lookahead(BUFFER)){
 		case _PNTVRGL:
-		    pop(BUFFER);
+		    match(BUFFER, _PNTVRGL);
 			printf("Lexema: ;\n");
 			BLOCO(BUFFER);
 			if (lookahead(BUFFER) == _PNT) {
+				match(BUFFER, _PNT);
 				printf("Lexema: .\n");
-				pop(BUFFER);
 			}
 			break;
 		default: 
@@ -1991,6 +1989,7 @@ void analisador_sintatico(node *PILHA, int stop){
 		switch(lookahead(BUFFER)){
 			case _PROGRAM:
 				printf("Lexema: <program>\n");
+				match(BUFFER, _PROGRAM);
 				PROGRAM(BUFFER);
 				stop = 1;
 				printf("Analise sintatica finalizada.\n");
