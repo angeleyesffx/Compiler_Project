@@ -1319,6 +1319,15 @@ node *dequeue(node *FILA){
 	}
 }
 
+node *head(node *FILA){
+    if(FILA->prox == NULL){
+       exit(0);
+    }else{
+        node *tmp = FILA->prox;
+		return tmp;
+    }
+}
+
 int lookahead(node *FILA){
     if(FILA->prox == NULL){
        exit(0);
@@ -1327,6 +1336,7 @@ int lookahead(node *FILA){
 		return tmp->num;
     }
 }
+
 
 void match(node *FILA, int token){
 	if(lookahead(FILA) == token){	
@@ -1400,6 +1410,8 @@ void PROGRAM(node *BUFFER);
 
 //TIPO -> integer | boolean
 void TIPO(node *BUFFER){ 
+    node *token;
+	token = head(BUFFER);
 	switch(lookahead(BUFFER)){
 		case _INTEGER: 
 	    	match(BUFFER, _INTEGER);
@@ -1410,38 +1422,48 @@ void TIPO(node *BUFFER){
 			printf("Lexema: <boolean>\n");
 			break;		
 		default: 
-		    printf("esperado TIPO\n");
+		    printf("Era esperado <integer> ou <boolean>, porem foi encontrado <%s>\n", token->palavra);
 			exit(1);
+			break;
 	}
 }
 
 //ID -> LETRA {LETRA | DIGITO} 
 void ID(node *BUFFER){
+    node *token;
+	token = head(BUFFER);
 	switch(lookahead(BUFFER)){
 		case _LETTER: 
 			match(BUFFER, _LETTER);
 			printf("Lexema: <id>\n");
 			break;		
 		default: 
-		    printf("esperado ID\n");
+		    printf("Era esperado <id>, porem foi encontrado <%s>\n", token->palavra);
+		    exit(1);
+		    break;
 	}
 }
 
 //NUMERO -> DIGITO {DIGITO} 
 void NUMERO(node *BUFFER){ 
+    node *token;
+	token = head(BUFFER);
 	switch(lookahead(BUFFER)){
 		case _NUMBER: 
 		    match(BUFFER, _NUMBER);
 			printf("Lexema: <digitos>\n");
 			break;		
 		default: 
-		    printf("esperava Digito\n");
+		    printf("Era esperado <digito>, porem foi encontrado <%s>\n", token->palavra);
+		    exit(1);
 			break;	
 	}
 }
 
 //BOOL -> true | false
 void BOOL(node *BUFFER){
+	node *token;
+	token = head(BUFFER);
 	switch(lookahead(BUFFER)){
 		case _TRUE: 
 		    match(BUFFER, _TRUE);
@@ -1452,7 +1474,8 @@ void BOOL(node *BUFFER){
 			printf("Lexema: <false>\n");
 			break;		
 		default: 
-		    printf("esperado BOOL\n");
+		    printf("Era esperado <true> ou <false>, porem foi encontrado <%s>\n", token->palavra);
+		    exit(1);
 			break;	
 	}
 }
@@ -1465,6 +1488,7 @@ void VARIAVEL(node *BUFFER){
 //FATOR -> VARIAVEL | NUMERO | BOOL | ( ExprSimples )
 void FATOR(node *BUFFER){
 	node *token;
+	token = head(BUFFER);
 	switch(lookahead(BUFFER)){
 		case _LETTER: 
 			 VARIAVEL(BUFFER);
@@ -1486,18 +1510,20 @@ void FATOR(node *BUFFER){
 			 	match(BUFFER, _FECHAP);
 				printf("Lexema: )\n");		
 	       	}else{ 
-			    printf("esperava )\n");
+			    printf("Era esperado <)>, porem foi encontrado <%s>\n", token->palavra);
 				exit(1);	
          	}
 			break;			
 		default: 
-		    printf("ERRO SINTATICO, esperava FATOR\n");
+		    printf("Era esperado <FATOR>, porem foi encontrado <%s>\n", token->palavra);
 			break;	
 	}
 }
 
 //TERMO -> FATOR {(* | div) FATOR} 
 void TERMO(node *BUFFER){
+	node *token;
+	token = head(BUFFER);
 	while((lookahead(BUFFER)==_FALSE)||(lookahead(BUFFER)==_TRUE)||(lookahead(BUFFER) == _LETTER)||(lookahead(BUFFER) == _NUMBER)||(lookahead(BUFFER) == _OPMULT)||(lookahead(BUFFER) == _DIV)){
 		switch(lookahead(BUFFER)){
 			case _OPMULT: 
@@ -1523,13 +1549,15 @@ void TERMO(node *BUFFER){
 				FATOR(BUFFER);
 				break;				
 			default: 
-			    printf("esperava * ou div\n");
+			    printf("Era esperado <*> ou <div>, porem foi encontrado <%s>\n", token->palavra);
 				break;	
 		}
 	}
 }
 //ExprSimples -> [+ | -] TERMO {(+ | -) TERMO} 
 void ExprSimples(node *BUFFER){
+	node *token;
+	token = head(BUFFER);
 	while((lookahead(BUFFER)==_FALSE)||(lookahead(BUFFER)==_TRUE)||(lookahead(BUFFER) == _LETTER)||(lookahead(BUFFER) == _NUMBER)||(lookahead(BUFFER) == _OPADI)||(lookahead(BUFFER) == _OPSUB)){
 		switch(lookahead(BUFFER)){
 			case _OPADI: 
@@ -1555,7 +1583,7 @@ void ExprSimples(node *BUFFER){
 			    TERMO(BUFFER);
 				break;			
 			default: 
-			    printf("esperava + ou -");
+			    printf("Era esperado <-> ou <+>, porem foi encontrado <%s>\n", token->palavra);
 				break;	
 		}
 	}
@@ -1563,31 +1591,36 @@ void ExprSimples(node *BUFFER){
 
 //RELACAO -> = | <>| <| <= | >= | >
 void RELACAO(node *BUFFER){
+	node *token;
+	token = head(BUFFER);
 	switch(lookahead(BUFFER)){
-	case _IGUAL:
-		match(BUFFER, _IGUAL);
-		printf("Lexema: =\n");	
-    	break;
-	case _MAIOR: 
-	    match(BUFFER, _MAIOR);
-	    printf("Lexema: >\n");	
-    	break;
-	case _MENOR:
-		match(BUFFER, _MENOR);
-		printf("Lexema: <\n");	
-    	break;
-	case _MAIORIGUAL:
-		match(BUFFER, _MAIORIGUAL);
-		printf("Lexema: >=\n");	
-    	break;
-	case _ATRIBUICAO:
-		match(BUFFER, _ATRIBUICAO);
-		printf("Lexema: :=\n");	
-    	break;
-	case _DIFERENTE:
-    	match(BUFFER, _DIFERENTE);
-	    printf("Lexema: <>\n");	
-    	break;
+		case _IGUAL:
+			match(BUFFER, _IGUAL);
+			printf("Lexema: =\n");	
+	    	break;
+		case _MAIOR: 
+		    match(BUFFER, _MAIOR);
+		    printf("Lexema: >\n");	
+	    	break;
+		case _MENOR:
+			match(BUFFER, _MENOR);
+			printf("Lexema: <\n");	
+	    	break;
+		case _MAIORIGUAL:
+			match(BUFFER, _MAIORIGUAL);
+			printf("Lexema: >=\n");	
+	    	break;
+		case _ATRIBUICAO:
+			match(BUFFER, _ATRIBUICAO);
+			printf("Lexema: :=\n");	
+	    	break;
+		case _DIFERENTE:
+	    	match(BUFFER, _DIFERENTE);
+		    printf("Lexema: <>\n");	
+	    	break;
+	    default: 
+			printf("Era esperado <RELACAO>, porem foi encontrado <%s>\n", token->palavra);
+			break;		
 	} 	
 }
 
@@ -1613,88 +1646,112 @@ void ListaID(node *BUFFER){
 }
 //SecParamForm -> [var] ListaID : TIPO
 void SecParamForm(node *BUFFER){
+	node *token;
+	token = head(BUFFER);
 	switch(lookahead(BUFFER)){
 		case _VAR:
 			match(BUFFER, _VAR);
 			printf("Lexema: var\n"); 
 			ListaID(BUFFER);
+			token = head(BUFFER);
 	        if(lookahead(BUFFER) == _DSPNT){
 	        	match(BUFFER, _DSPNT);
 				printf("Lexema: :\n");
 				TIPO(BUFFER);		
 	       	}else{ 
-			    printf("ERRO SINTATICO, esperava :\n");
+			    printf("Era esperado <:>, porem foi encontrado <%s>\n", token->palavra);
 				exit(1);	
          	}
 			break;	
 		default: 
-		    printf("ERRO SINTATICO, esperava VAR\n");
+		    printf("Era esperado <VAR>, porem foi encontrado <%s>\n", token->palavra);
 			break;	
 	}
 } 
 
 //DeclVar -> ListaID : TIPO
 void DeclVar(node *BUFFER){
+	node *token;
 	ListaID(BUFFER); 
+	token = head(BUFFER);
 	if(lookahead(BUFFER) == _DSPNT){
-	     	match(BUFFER, _DSPNT);
-			printf("Lexema: :\n");
-			TIPO(BUFFER);		
+	    match(BUFFER, _DSPNT);
+		printf("Lexema: :\n");
+		TIPO(BUFFER);		
 	}else{ 
-		    printf("ERRO SINTATICO, esperava :\n");
-			exit(1);	
+		printf("Era esperado <:>, porem foi encontrado <%s>\n", token->palavra);
+		exit(1);	
 	}
 }
 
 //PartDeclVar -> var DeclVar {; DeclVar} ; 
 void PartDeclVar(node *BUFFER){
+	node *token;
+	token = head(BUFFER);
 	if(lookahead(BUFFER) == _VAR){
 		while(lookahead(BUFFER) == _VAR){
 			match(BUFFER, _VAR);
 			printf("Lexema: var\n");
 			DeclVar(BUFFER);
+			token = head(BUFFER);
 			if(lookahead(BUFFER) == _PNTVRGL){
 				match(BUFFER, _PNTVRGL);
 				printf("Lexema: ;\n");
 		    }else{ 
-			    printf("ERRO SINTATICO, esperava ;\n");
+			    printf("Era esperado <;>, porem foi encontrado <%s>\n", token->palavra);
 				exit(1);	
 	     	}
 	    }
-    }	
+    }else{
+        printf("Era esperado <VAR>, porem foi encontrado <%s>\n", token->palavra);
+		exit(1);
+	}	
 } 
 
 //PartDeclSubRotina -> {DeclProcedure;}
 void PartDeclSubRotina(node *BUFFER){
+	node *token;
+	token = head(BUFFER);
 	if(lookahead(BUFFER) == _PROCEDURE){
 		DeclProcedure(BUFFER);
+		token = head(BUFFER);
 		if(lookahead(BUFFER) ==_PNTVRGL){
 			match(BUFFER, _PNTVRGL);
 			printf("Lexema: ;\n");
-	    }
-    }	
+	    }else{ 
+			printf("Era esperado1 <;>, porem foi encontrado <%s>\n", token->palavra);
+			exit(1);	
+	    } 
+    }else{ 
+		printf("Era esperado <procedure>, porem foi encontrado <%s>\n", token->palavra);
+		exit(1);	
+	}	
 }
 
 //CmdComposto -> begin CMD {; CMD} end
 void CmdComposto(node *BUFFER){	
+    node *token;
+	token = head(BUFFER);
 	if (lookahead(BUFFER) == _BEGIN) {
 		match(BUFFER, _BEGIN);
 		printf("Lexema: begin\n");
 		CMD(BUFFER);    
-		while((lookahead(BUFFER) == _WRITE)||(lookahead(BUFFER) == _LETTER)||(lookahead(BUFFER) == _BEGIN)||(lookahead(BUFFER) == _IF)||(lookahead(BUFFER) == _IF)||(lookahead(BUFFER) == _PNTVRGL)){
-			  if(lookahead(BUFFER) == _PNTVRGL){
+		while((lookahead(BUFFER) == _PNTVRGL)&&(lookahead(BUFFER) != _END)){
 			  	match(BUFFER, _PNTVRGL);
 			    printf("Lexema: ;\n");
-		        }
 				CMD(BUFFER);
 	    }
-        if (lookahead(BUFFER) == _END) {
-             match(BUFFER, _END);
-		     printf("Lexema: end\n");
-	    }
-	} else {
-		printf("ERRO SINTATICO, esperava BEGIN\n");
-	    exit(1);
+	}else{ 
+           printf("Era esperado <begin>, porem foi encontrado <%s>\n", token->palavra);
+	       exit(1);
+    	}    
+	token = head(BUFFER);
+    if (lookahead(BUFFER) == _END) {
+        match(BUFFER, _END);
+        printf("Lexema: end\n");
+    }else{ 
+       printf("Era esperado <end>, porem foi encontrado <%s>\n", token->palavra);
+       exit(1);	
 	}
 }
 
@@ -1711,6 +1768,7 @@ void BLOCO(node *BUFFER){
 
 //ParamForm -> ( SPARAMFORM {; SPARAMFORM })
 void ParamForm(node *BUFFER){
+	node *token;
 	switch(lookahead(BUFFER)){
 		case _ABREP: 
 	    	match(BUFFER, _ABREP);
@@ -1721,16 +1779,17 @@ void ParamForm(node *BUFFER){
 				printf("Lexema: ;\n");
 				SecParamForm(BUFFER);
 			}
+			token = head(BUFFER);
 			if(lookahead(BUFFER) == _FECHAP){
 			   match(BUFFER, _FECHAP);
 		       printf("Lexema: )\n");
 	     	} else {
-	     		printf("ERRO SINTATICO, esperava )\n");
-	     		exit(1);
+	     		printf("Era esperado <)>, porem foi encontrado <%s>\n", token->palavra);
+		        exit(1);
 			 }
 	     	break;
 		default: 
-		    printf("ERRO SINTATICO, esperava (\n");
+		    printf("Era esperado <(>, porem foi encontrado <%s>\n", token->palavra);
 			break;	
 	}
 
@@ -1738,6 +1797,8 @@ void ParamForm(node *BUFFER){
 
 //DeclProcedure -> procedure ID [PARAMFORM] ; BLOCO ;
 void DeclProcedure(node *BUFFER){
+	node *token;
+	token = head(BUFFER);
 	switch(lookahead(BUFFER)){
 		case _PROCEDURE: 
 		    match(BUFFER, _PROCEDURE);
@@ -1746,45 +1807,44 @@ void DeclProcedure(node *BUFFER){
 			while(lookahead(BUFFER) == _ABREP){
 			   ParamForm(BUFFER);
 	     	}
+	     	token = head(BUFFER);
 			if(lookahead(BUFFER) == _PNTVRGL){
 				match(BUFFER, _PNTVRGL);
 				printf("Lexema: ;\n");	
-		    }
-			BLOCO(BUFFER);
-			if(lookahead(BUFFER) == _PNTVRGL){
-				match(BUFFER, _PNTVRGL);
-				printf("Lexema: ;\n");
 		    }else{ 
-			    printf("ERRO SINTATICO, esperava ;\n");
-				exit(1);	
-	     	}
+		       printf("Era esperado <;>, porem foi encontrado <%s>\n", token->palavra);
+		       exit(1);	
+         	}
+			BLOCO(BUFFER);
 			break;		
 		default: 
-		    printf("ERRO SINTATICO DeclProcedure\n");
-			break;	
+		    printf("Era esperado <procedure>, porem foi encontrado <%s>\n", token->palavra);
+		    break;	
 	}	
 }
 
 //CMD -> ATRIB | CPROC | CmdComposto | COMDCOND1 | CMDREP1 | write ( ID )
 void CMD(node *BUFFER){
-	node *token; int lex;
+	node *token;
 	switch(lookahead(BUFFER)){
 		case _WRITE:
 			match(BUFFER, _WRITE);
 			printf("Lexema: write\n");
+			token = head(BUFFER);
         	if(lookahead(BUFFER) == _ABREP){
         		match(BUFFER, _ABREP);
 				printf("Lexema: (\n");
 				ID(BUFFER);
 			}else{
-				printf("ERRO SINTATICO, esperava (\n");
+				printf("Era esperado <(>, porem foi encontrado <%s>\n", token->palavra);
 				exit(1);
 			}
+			token = head(BUFFER);
         	if(lookahead(BUFFER) == _FECHAP){
         		match(BUFFER, _FECHAP);
 				printf("Lexema: )\n");
 			}else{
-				printf("ERRO SINTATICO, esperava )\n");
+				printf("Era esperado <)>, porem foi encontrado <%s>\n", token->palavra);
 				exit(1);
 			}
 		    break;	
@@ -1803,45 +1863,47 @@ void CMD(node *BUFFER){
 		    break;
 		case _WHILE:
 			CMDREP1(BUFFER);	
-		    break;							
+		    break;								
 	}	
 }
 
 //ATRIB -> VARIAVEL := EXPR 
 void ATRIB(node *BUFFER){
+	node *token;
 	VARIAVEL(BUFFER);
+	token = head(BUFFER);
 	if(lookahead(BUFFER) == _ATRIBUICAO){
 		match(BUFFER, _ATRIBUICAO);
 		printf("Lexema: :=\n");
 		Expr(BUFFER);
-		if(lookahead(BUFFER) == _PNTVRGL){
-			match(BUFFER, _PNTVRGL);
-			printf("Lexema: ;\n");	
-		}
 	}else{
-		printf("ERRO SINTATICO, esperava :=\n");
+		printf("Era esperado <:=>, porem foi encontrado <%s>\n", token->palavra);
 		exit(1);
 	}
 }
 
 //CPROC -> ID [( LPARAM )]
 void CPROC(node *BUFFER){
+	node *token;
 	ID(BUFFER);
     while(lookahead(BUFFER) == _ABREP){
     	match(BUFFER, _ABREP);
 		printf("Lexema: (\n");
 	    LPARAM(BUFFER);
+	    token = head(BUFFER);
 		if(lookahead(BUFFER) == _FECHAP){
 			match(BUFFER, _FECHAP);
 			printf("Lexema: )\n");
 		}else{
-			printf("ERRO SINTATICO, esperava )\n");
+			printf("Era esperado <)>, porem foi encontrado <%s>\n", token->palavra);
 			exit(1);
 		}
     }
 }
 //LPARAM -> [( ID | NUMERO | BOOL ) {, ( ID | NUMERO | BOOL )}]
 void LPARAM(node * BUFFER) {
+	node *token;
+	token = head(BUFFER);
     do{
 	    if(lookahead(BUFFER) == _ABREP) {
 	    	match(BUFFER, _ABREP);
@@ -1860,127 +1922,147 @@ void LPARAM(node * BUFFER) {
 			        BOOL(BUFFER);
 			        break;
 			      default:
-			        printf("ERRO SINTATICO, esperava ID ou NUMERO ou BOOL\n");
+			        printf("Era esperado <id> ou <digito> ou <bool>, porem foi encontrado <%s>\n", token->palavra);
 			        break;
 	        }
 		    if(lookahead(BUFFER) == _FECHAP){
 		       match(BUFFER, _FECHAP);
 		       printf("Lexema: )\n");
 		    }else{
-			    printf("ERRO SINTATICO, esperava )\n");
-			    exit(1);
-		    }
+			   printf("Era esperado <)>, porem foi encontrado <%s>\n", token->palavra);
+		       exit(1);
+	    	}
 	    }
     }while(lookahead(BUFFER) == _VRGL);
 }
 
 //COMDCOND1 -> if ( Expr ) then CMD {COMDCOND2}
 void COMDCOND1(node *BUFFER){
+	node *token;
+	token = head(BUFFER);
 	if(lookahead(BUFFER) == _IF){
 		match(BUFFER, _IF);
 		printf("Lexema: if\n");
 		if(lookahead(BUFFER) == _ABREP){
 			match(BUFFER, _ABREP);
 	    	printf("Lexema: (\n");
-		    Expr(BUFFER);   
+		    Expr(BUFFER);
+			token = head(BUFFER);   
 		    if(lookahead(BUFFER) == _FECHAP){
 		    	match(BUFFER, _FECHAP);
 		    	printf("Lexema: )\n");
 		    }else{
-		    	printf("ERRO SINTATICO, esperava esperava ) \n");
+		    	printf("Era esperado <)>, porem foi encontrado <%s>\n", token->palavra);
 			    exit(1);
         	}
 	    }
+	    token = head(BUFFER);
 		if(lookahead(BUFFER) == _THEN){
 			match(BUFFER, _THEN);
 	    	printf("Lexema: then\n");
 		    CMD(BUFFER);
 	    }else{
-		    printf("ERRO SINTATICO, esperava esperava then \n");
+		    printf("Era esperado <then>, porem foi encontrado <%s>\n", token->palavra);
 			exit(1);
         }
 	    if(lookahead(BUFFER) == _ELSE){
 	    	COMDCOND2(BUFFER);
 		}
 	}else{
-			printf("ERRO SINTATICO, esperava esperava if \n");
-			exit(1);
+		printf("Era esperado <if>, porem foi encontrado <%s>\n", token->palavra);
+		exit(1);
 	}	
 }
 
 //COMDCOND2 -> else CMD ----->>>> correção da gramatica
 void COMDCOND2(node *BUFFER){
+	node *token;
+	token = head(BUFFER);
 	if(lookahead(BUFFER) == _ELSE){
 		match(BUFFER, _ELSE);
 		printf("Lexema: else\n");
 		CMD(BUFFER);
+	}else{
+		printf("Era esperado <else>, porem foi encontrado <%s>\n", token->palavra);
+		exit(1);
 	}	
 }
 //CMDREP1 -> while ( EXPR ) do CMD
 void CMDREP1(node *BUFFER){
+	node *token;
+	token = head(BUFFER);
 	if(lookahead(BUFFER) == _WHILE){
 		match(BUFFER, _WHILE);
 		printf("Lexema: while\n");
+		token = head(BUFFER);
 		if(lookahead(BUFFER) == _ABREP){
 			match(BUFFER, _ABREP);
 	    	printf("Lexema: (\n");
 		    Expr(BUFFER);   
+		    token = head(BUFFER);
 		    if(lookahead(BUFFER) == _FECHAP){
 		    	match(BUFFER, _FECHAP);
 		    	printf("Lexema: )\n");
 		    }else{
-		    	printf("ERRO SINTATICO, esperava esperava ) \n");
+		    	printf("Era esperado <)>, porem foi encontrado <%s>\n", token->palavra);
 			    exit(1);
         	}
-	    }
+	    }else{
+		    	printf("Era esperado <(>, porem foi encontrado <%s>\n", token->palavra);
+			    exit(1);
+        	}
+        token = head(BUFFER);	
 		if(lookahead(BUFFER) == _DO){
 			match(BUFFER, _DO);
 	    	printf("Lexema: do\n");
 		    CMD(BUFFER);
 	    }else{
-		    printf("ERRO SINTATICO, esperava esperava do \n");
+		    printf("Era esperado <do>, porem foi encontrado <%s>\n", token->palavra);
 			exit(1);
         }
 	}else{
-			printf("ERRO SINTATICO, esperava esperava while \n");
+			printf("Era esperado <while>, porem foi encontrado <%s>\n", token->palavra);
 			exit(1);
 	}	
 }
 
 //PROGRAM  -> ID ; BLOCO .
 void PROGRAM(node *BUFFER){	
+    node *token;
 	ID(BUFFER);	
+	token = head(BUFFER);
 	switch(lookahead(BUFFER)){
 		case _PNTVRGL:
 		    match(BUFFER, _PNTVRGL);
 			printf("Lexema: ;\n");
 			BLOCO(BUFFER);
+			token = head(BUFFER);
 			if (lookahead(BUFFER) == _PNT) {
 				match(BUFFER, _PNT);
 				printf("Lexema: .\n");
+			}else{
+				printf("Era esperado <.>, porem foi encontrado <%s>\n", token->palavra);
 			}
 			break;
 		default: 
-		    printf("ERRO SINTATICO, esperava ;\n");
+		    printf("Era esperado <;>, porem foi encontrado <%s>\n", token->palavra);
 			break;	
 	}
 }
 
 void analisador_sintatico(node *BUFFER, int stop){
-		while(stop != -1){
+	node *token;
+	token = head(BUFFER);
+	while(stop != -1){
 		switch(lookahead(BUFFER)){
 			case _PROGRAM:
 				printf("Lexema: <program>\n");
 				match(BUFFER, _PROGRAM);
 				PROGRAM(BUFFER);
 				stop = 1;
-				printf("Analise sintatica finalizada.\n");
-				break;	
-			case -1: /*<fim da leitura do  buffer>*/
-				stop = 1;
 				break;	
 			default: 
-			    printf("ERRO SINTATICO, esperava PROGRAM\n");
+			    printf("Era esperado <program>, porem foi encontrado <%s>\n", token->palavra);
 			    stop = -1;
 				break;	
 		}
@@ -1989,7 +2071,7 @@ void analisador_sintatico(node *BUFFER, int stop){
 }
 
 int main(){
-	char str[9999], linha[9999], final[9999] = "", url[]="", ch;
+	char str[80], linha[80], final[80] = "", url[]="", ch;
 	int i = -1, r=1, tamanho = 0, count=0, quantidade = 0;
 	FILE *arq;
 	FILE *saida;
